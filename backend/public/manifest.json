@@ -1,0 +1,17 @@
+{
+  "visualizations": [
+    {
+      "id": "co2",
+      "viz": "co2-dyamond-svs5196",
+      "title": "DYAMOND Global Carbon Dioxide (NASA SVS 5196)",
+      "description": "",
+      "fps": 12,
+      "frame_count": 314,
+      "source": "frames",
+      "has_captions": true,
+      "features": "features/co2.json",
+      "frame_pattern": "frames/co2/co2_%04d.jpg",
+      "source_url": "https://svs.gsfc.nasa.gov/5196"
+    }
+  ]
+}

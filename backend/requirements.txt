@@ -1,0 +1,13 @@
+# Core frame -> features pipeline:
+Pillow>=10.0
+numpy>=1.24
+
+# svs_fetch.py uses only the Python standard library (no install needed).
+
+# Optional — only for ingest_netcdf.py (sonify real NASA gridded data values):
+# xarray>=2024.0
+# netCDF4>=1.6
+
+# Optional — only for serve_features.py (backend API deliverable form):
+# fastapi>=0.110
+# uvicorn>=0.29

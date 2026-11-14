@@ -1,0 +1,268 @@
+{
+  "viz": "mock-co2-rising",
+  "title": "PLACEHOLDER - replace with real NASA extractor output",
+  "description": "Hand-made placeholder data (NOT NASA data) for UI/engine development.",
+  "source_url": "",
+  "source": "mock",
+  "fps": 12,
+  "frame_count": 28,
+  "normalization": {},
+  "captions": [
+    {
+      "start": 0,
+      "end": 4,
+      "text": "Intensity rising, brightness rising, activity moving right"
+    },
+    {
+      "start": 5,
+      "end": 8,
+      "text": "Intensity steady, brightness steady, a sharp change"
+    },
+    {
+      "start": 9,
+      "end": 13,
+      "text": "Intensity steady, brightness steady, activity moving left"
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Intensity rising, brightness rising, activity moving left, a sharp change"
+    },
+    {
+      "start": 19,
+      "end": 22,
+      "text": "Intensity rising, brightness rising, a sharp change"
+    },
+    {
+      "start": 23,
+      "end": 27,
+      "text": "Intensity steady, brightness steady, activity moving right"
+    }
+  ],
+  "frames": [
+    {
+      "i": 0,
+      "hue": 210.0,
+      "brightness": 0.2394,
+      "hot": 0.086,
+      "panX": 0.5,
+      "delta": 0.0825
+    },
+    {
+      "i": 1,
+      "hue": 203.7,
+      "brightness": 0.2876,
+      "hot": 0.1516,
+      "panX": 0.5922,
+      "delta": 0.1093
+    },
+    {
+      "i": 2,
+      "hue": 197.4,
+      "brightness": 0.3451,
+      "hot": 0.1981,
+      "panX": 0.6795,
+      "delta": 0.129
+    },
+    {
+      "i": 3,
+      "hue": 191.1,
+      "brightness": 0.4166,
+      "hot": 0.2236,
+      "panX": 0.7571,
+      "delta": 0.1585
+    },
+    {
+      "i": 4,
+      "hue": 184.8,
+      "brightness": 0.4525,
+      "hot": 0.2907,
+      "panX": 0.8208,
+      "delta": 0.1744
+    },
+    {
+      "i": 5,
+      "hue": 178.5,
+      "brightness": 0.4627,
+      "hot": 0.3123,
+      "panX": 0.8673,
+      "delta": 0.2156
+    },
+    {
+      "i": 6,
+      "hue": 172.2,
+      "brightness": 0.4919,
+      "hot": 0.3256,
+      "panX": 0.8939,
+      "delta": 0.2027
+    },
+    {
+      "i": 7,
+      "hue": 165.9,
+      "brightness": 0.4555,
+      "hot": 0.3603,
+      "panX": 0.8993,
+      "delta": 0.9
+    },
+    {
+      "i": 8,
+      "hue": 159.6,
+      "brightness": 0.4562,
+      "hot": 0.3433,
+      "panX": 0.8832,
+      "delta": 0.0969
+    },
+    {
+      "i": 9,
+      "hue": 153.3,
+      "brightness": 0.4385,
+      "hot": 0.3793,
+      "panX": 0.8464,
+      "delta": 0.059
+    },
+    {
+      "i": 10,
+      "hue": 147.0,
+      "brightness": 0.4361,
+      "hot": 0.3813,
+      "panX": 0.7909,
+      "delta": 0.1097
+    },
+    {
+      "i": 11,
+      "hue": 140.7,
+      "brightness": 0.4202,
+      "hot": 0.3699,
+      "panX": 0.7198,
+      "delta": 0.1301
+    },
+    {
+      "i": 12,
+      "hue": 134.4,
+      "brightness": 0.3951,
+      "hot": 0.4108,
+      "panX": 0.6368,
+      "delta": 0.1753
+    },
+    {
+      "i": 13,
+      "hue": 128.1,
+      "brightness": 0.4096,
+      "hot": 0.4295,
+      "panX": 0.5464,
+      "delta": 0.1908
+    },
+    {
+      "i": 14,
+      "hue": 121.9,
+      "brightness": 0.4309,
+      "hot": 0.4675,
+      "panX": 0.4536,
+      "delta": 0.9
+    },
+    {
+      "i": 15,
+      "hue": 115.6,
+      "brightness": 0.4913,
+      "hot": 0.4822,
+      "panX": 0.3632,
+      "delta": 0.1826
+    },
+    {
+      "i": 16,
+      "hue": 109.3,
+      "brightness": 0.5299,
+      "hot": 0.5505,
+      "panX": 0.2802,
+      "delta": 0.1636
+    },
+    {
+      "i": 17,
+      "hue": 103.0,
+      "brightness": 0.574,
+      "hot": 0.6024,
+      "panX": 0.2091,
+      "delta": 0.0969
+    },
+    {
+      "i": 18,
+      "hue": 96.7,
+      "brightness": 0.6451,
+      "hot": 0.6436,
+      "panX": 0.1536,
+      "delta": 0.0576
+    },
+    {
+      "i": 19,
+      "hue": 90.4,
+      "brightness": 0.7126,
+      "hot": 0.6651,
+      "panX": 0.1168,
+      "delta": 0.1245
+    },
+    {
+      "i": 20,
+      "hue": 84.1,
+      "brightness": 0.7875,
+      "hot": 0.7341,
+      "panX": 0.1007,
+      "delta": 0.1709
+    },
+    {
+      "i": 21,
+      "hue": 77.8,
+      "brightness": 0.8094,
+      "hot": 0.782,
+      "panX": 0.1061,
+      "delta": 0.9
+    },
+    {
+      "i": 22,
+      "hue": 71.5,
+      "brightness": 0.8627,
+      "hot": 0.8141,
+      "panX": 0.1327,
+      "delta": 0.191
+    },
+    {
+      "i": 23,
+      "hue": 65.2,
+      "brightness": 0.8997,
+      "hot": 0.8584,
+      "panX": 0.1792,
+      "delta": 0.1919
+    },
+    {
+      "i": 24,
+      "hue": 58.9,
+      "brightness": 0.8971,
+      "hot": 0.8455,
+      "panX": 0.2429,
+      "delta": 0.189
+    },
+    {
+      "i": 25,
+      "hue": 52.6,
+      "brightness": 0.8915,
+      "hot": 0.899,
+      "panX": 0.3205,
+      "delta": 0.1682
+    },
+    {
+      "i": 26,
+      "hue": 46.3,
+      "brightness": 0.8559,
+      "hot": 0.8863,
+      "panX": 0.4078,
+      "delta": 0.1245
+    },
+    {
+      "i": 27,
+      "hue": 40.0,
+      "brightness": 0.8214,
+      "hot": 0.8985,
+      "panX": 0.5,
+      "delta": 0.0584
+    }
+  ]
+}
