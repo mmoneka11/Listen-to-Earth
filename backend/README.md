@@ -1,9 +1,10 @@
 # Listen to Earth — Backend / Data Pipeline
 
 Turns a **NASA Earth Information Center (EIC)** visualization into the **feature
-array**
-
-
+array** that drives the sonification engine and the accessible web UI. All the
+computer-vision work happens **once, offline**, so the browser loads a tiny
+`features.json` and runs on any device — which is itself part of the
+accessibility story.
 
 ```
  NASA SVS (rendered DYAMOND frames)
@@ -145,7 +146,7 @@ Static `public/` on GitHub Pages / Netlify is recommended (nothing to crash
 during judging). For the "backend API endpoint" deliverable form:
 ```bash
 pip install fastapi uvicorn
-python serve_features.py   # GET /api/visualizations, /api/features/{id}, /frames/{id}/{file}
+python serve_features.py   # open http://127.0.0.1:8000/  (landing page, /health, /api/*, /public/*, /docs)
 ```
 
 ## 8. Accessibility
@@ -165,3 +166,38 @@ cite everything, even open source. Minimum for this project:
 
 See `DATASETS.md` for the full verified resource list and `tests/smoke_test.py`
 to validate the pipeline offline.
+
+---
+
+## 10. Batch build, audio, Docker & CI (complete pipeline)
+
+**Build every visualization at once** — declare them in `datasets.yaml`, then:
+```bash
+python build_all.py --audio          # fetch -> frames -> features -> audio -> manifest -> verify
+python build_all.py --dry-run        # preview the commands
+python build_all.py --skip-fetch     # reuse already-downloaded movies
+```
+
+**Offline audio artifact** — render a `features.json` to a real stereo WAV (for the
+30-second demo video and as a judging-day fallback; it's also the reference mapping
+the Tone.js engine mirrors):
+```bash
+python render_audio.py --features public/features/co2.json --out public/audio/co2.wav
+python render_audio.py --features public/features/co2.json --max-seconds 30 --out public/audio/co2_demo.wav
+```
+Mapping: hue→pentatonic note, brightness→octave+volume, hot→harmonic richness,
+panX→stereo pan, delta→accent. The audio is a deterministic function of NASA data —
+not AI-generated (note this in the SI/AI disclosure).
+
+**Docker** — run the API containerized:
+```bash
+docker compose up --build            # serves http://localhost:8000
+# build data inside the container instead:
+docker run --rm -v "$PWD/public:/app/public" -v "$PWD/data:/app/data" listen-to-earth python build_all.py
+```
+
+**CI** — `.github/workflows/ci.yml` runs the offline smoke test (both pipeline paths)
+on every push and PR, so the contract can't silently break.
+
+**License** — Apache-2.0 (`LICENSE`), the NASA Space Apps default, so all code is
+freely usable and citable per the rules.

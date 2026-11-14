@@ -76,3 +76,20 @@ verify:
 
 test:
 	$(PY) tests/smoke_test.py
+
+# Render a WAV from a built features.json (offline audio artifact)
+# usage: make audio VIZ=co2
+audio:
+	$(PY) render_audio.py --features public/features/$(VIZ).json --out public/audio/$(VIZ).wav
+
+# Build every visualization in datasets.yaml (fetch->frames->features->audio->verify)
+build-all:
+	$(PY) build_all.py --audio
+
+# Run the API in Docker on http://localhost:8000
+docker-up:
+	docker compose up --build
+
+# Run the backend app locally on http://127.0.0.1:8000
+serve:
+	$(PY) serve_features.py

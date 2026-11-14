@@ -1,6 +1,11 @@
 # Verified NASA Datasets & Resources
-The challenge's "NASA Data & Resources" tab lists the
-resources below (reproduced from the Earth Information Jukebox challenge).
+
+Checked on 2026-11-14. The challenge's "NASA Data & Resources" tab lists the
+resources below (reproduced from the Earth Information Jukebox challenge). Any of
+these is inside the "clearly used NASA data" judging gate. Confirm the live
+Resources tab on the day for the exact link each entry points to, and cite that
+link **plus** the page you actually download from.
+
 ## Used in this project (verified)
 
 | Resource | What it is | Link | Status |

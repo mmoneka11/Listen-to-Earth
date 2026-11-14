@@ -1,0 +1,10 @@
+services:
+  jukebox-api:
+    build: .
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./public:/app/public   # serve freshly built data without rebuilding the image

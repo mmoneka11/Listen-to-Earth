@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-serve_features.py — OPTIONAL. A tiny read-only API over the files in public/.
+serve_features.py — the Listen to Earth backend app (read-only API + static host).
 
-You do NOT need this for the web jukebox: shipping public/ as static files
-(GitHub Pages / Netlify) is simpler and has nothing to crash during judging.
-It exists only if the team wants to showcase the "backend API endpoint" deliverable
-form the challenge lists, or serve features to a desktop/native client.
+Run it and open http://127.0.0.1:8000/ for a landing page that lists every built
+visualization with links to its features, frames and audio. Everything under
+public/ is served, so the frontend (or the demo) can pull frames and WAVs directly.
 
     pip install fastapi uvicorn
-    python serve_features.py            # http://127.0.0.1:8000
+    python serve_features.py                 # http://127.0.0.1:8000
+    HOST=0.0.0.0 PORT=8000 python serve_features.py   # for Docker / LAN
+
 Endpoints:
-    GET /api/visualizations             -> the manifest
-    GET /api/features/{id}              -> that visualization's features.json
-    GET /frames/{id}/{file}             -> a frame image
-CORS is open so a separately-hosted frontend can call it.
+    GET /                        landing page (HTML)
+    GET /health                  {"status":"ok", ...}
+    GET /api/visualizations      the manifest
+    GET /api/features/{id}       that visualization's features.json
+    GET /public/...              static: frames, features, audio
 """
 from __future__ import annotations
 
@@ -23,43 +25,105 @@ import os
 try:
     from fastapi import FastAPI, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import FileResponse
+    from fastapi.responses import HTMLResponse
+    from fastapi.staticfiles import StaticFiles
 except ImportError:
     raise SystemExit("Install the API extras first:  pip install fastapi uvicorn")
 
-PUBLIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
-app = FastAPI(title="Earth Information Jukebox API", version="1.0")
+HERE = os.path.dirname(os.path.abspath(__file__))
+PUBLIC = os.path.join(HERE, "public")
+
+app = FastAPI(title="Listen to Earth — Backend API", version="1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
+
+
+def load_manifest():
+    p = os.path.join(PUBLIC, "manifest.json")
+    if not os.path.exists(p):
+        return None
+    with open(p) as f:
+        return json.load(f)
+
+
+@app.get("/health")
+def health():
+    m = load_manifest()
+    n = len(m["visualizations"]) if m else 0
+    return {"status": "ok", "visualizations": n, "data_built": m is not None}
 
 
 @app.get("/api/visualizations")
 def visualizations():
-    path = os.path.join(PUBLIC, "manifest.json")
-    if not os.path.exists(path):
-        raise HTTPException(404, "manifest.json not built yet — run make_manifest.py")
-    with open(path) as f:
-        return json.load(f)
+    m = load_manifest()
+    if not m:
+        raise HTTPException(404, "No data built yet — run build_all.py (or make build).")
+    return m
 
 
 @app.get("/api/features/{viz_id}")
 def features(viz_id: str):
     safe = os.path.basename(viz_id)
-    path = os.path.join(PUBLIC, "features", f"{safe}.json")
-    if not os.path.exists(path):
+    p = os.path.join(PUBLIC, "features", f"{safe}.json")
+    if not os.path.exists(p):
         raise HTTPException(404, f"no features for '{safe}'")
-    with open(path) as f:
+    with open(p) as f:
         return json.load(f)
 
 
-@app.get("/frames/{viz_id}/{filename}")
-def frame(viz_id: str, filename: str):
-    path = os.path.join(PUBLIC, "frames", os.path.basename(viz_id), os.path.basename(filename))
-    if not os.path.exists(path):
-        raise HTTPException(404, "frame not found")
-    return FileResponse(path)
+@app.get("/", response_class=HTMLResponse)
+def index():
+    m = load_manifest()
+    rows = ""
+    if m and m.get("visualizations"):
+        for v in m["visualizations"]:
+            vid = v["id"]
+            audio = f'<a href="/public/audio/{vid}.wav">audio</a>' \
+                if os.path.exists(os.path.join(PUBLIC, "audio", f"{vid}.wav")) else "<span>—</span>"
+            rows += (f"<tr><td><strong>{v.get('title', vid)}</strong><br>"
+                     f"<small>{v.get('description','')}</small></td>"
+                     f"<td>{v.get('frame_count','?')}</td>"
+                     f'<td><a href="/api/features/{vid}">features</a></td>'
+                     f"<td>{audio}</td>"
+                     f'<td><a href="{v.get("source_url","#")}">NASA source</a></td></tr>')
+    else:
+        rows = ('<tr><td colspan="5">No data built yet. Run '
+                '<code>python build_all.py</code> then refresh.</td></tr>')
+
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listen to Earth — Backend API</title>
+<style>
+ :root {{ color-scheme: light dark; font-family: system-ui, sans-serif; }}
+ body {{ max-width: 820px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }}
+ h1 {{ margin-bottom: .2rem; }} .sub {{ opacity:.7; margin-top:0; }}
+ table {{ border-collapse: collapse; width: 100%; margin-top: 1rem; }}
+ th,td {{ text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #8884; vertical-align: top; }}
+ code {{ background: #8882; padding: .1rem .3rem; border-radius: 4px; }}
+ ul {{ padding-left: 1.1rem; }}
+</style></head><body>
+<h1>Listen to Earth</h1>
+<p class="sub">Backend API — NASA Earth Information Center visualizations, sonified.</p>
+<h2>Visualizations</h2>
+<table><thead><tr><th>Visualization</th><th>Frames</th><th>Data</th><th>Audio</th><th>Source</th></tr></thead>
+<tbody>{rows}</tbody></table>
+<h2>Endpoints</h2>
+<ul>
+ <li><a href="/health">/health</a> — status</li>
+ <li><a href="/api/visualizations">/api/visualizations</a> — the manifest</li>
+ <li><code>/api/features/&lt;id&gt;</code> — a visualization's feature array</li>
+ <li><code>/public/...</code> — static frames, features &amp; audio</li>
+ <li><a href="/docs">/docs</a> — interactive API docs</li>
+</ul>
+</body></html>"""
+
+
+# serve everything under public/ (frames, features, audio) as static files
+if os.path.isdir(PUBLIC):
+    app.mount("/public", StaticFiles(directory=PUBLIC), name="public")
 
 
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)

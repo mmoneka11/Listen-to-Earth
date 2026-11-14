@@ -1,0 +1,30 @@
+# NASA visualizations to build, declared once. build_all.py reads this and runs
+# fetch -> frames -> features (-> audio) for each, then manifest + verify.
+# Every id below must come from the challenge's on-list NASA resources (see DATASETS.md).
+
+visualizations:
+  - id: 5196
+    viz: co2
+    title: "DYAMOND Global Carbon Dioxide (NASA SVS 5196)"
+    description: "Global CO2 moving through the atmosphere, Jan-Mar 2020 (GEOS DYAMOND model)."
+    source_url: "https://svs.gsfc.nasa.gov/5196"
+    hot_mode: bright
+    hot_threshold: 0.5
+    hue_region: frame
+    fps: 12
+    scale: 640x360
+    max_frames: 320
+
+  # Add a second on-list visualization for demo contrast. Find its SVS id on the
+  # challenge Resources tab first, then uncomment and fill it in (see DATASETS.md):
+  # - id: <SVS_ID>
+  #   viz: nightlights
+  #   title: "Change in Night Lights 2012-2023 (NASA SVS <SVS_ID>)"
+  #   description: "Growth in artificial night-time lighting, 2012 to 2023."
+  #   source_url: "https://svs.gsfc.nasa.gov/<SVS_ID>"
+  #   hot_mode: bright
+  #   hot_threshold: 0.55
+  #   hue_region: frame
+  #   fps: 12
+  #   scale: 640x360
+  #   max_frames: 320
