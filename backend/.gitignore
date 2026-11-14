@@ -1,8 +1,0 @@
-# keep heavy raw downloads out of git
-data/
-*.mp4
-*.mov
-*.webm
-__pycache__/
-*.pyc
-.DS_Store

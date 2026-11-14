@@ -1,0 +1,101 @@
+{
+  "scale": {
+    "name": "C Major Pentatonic",
+    "description": "Consonant 5-tone scale avoiding minor seconds and tritone dissonance",
+    "frequencies_hz": [
+      130.81, 146.83, 164.81, 196.00, 220.00,
+      261.63, 293.66, 329.63, 392.00, 440.00,
+      523.25, 587.33, 659.25, 783.99, 880.00,
+      1046.50, 1174.66, 1318.51, 1567.98, 1760.00
+    ],
+    "notes": [
+      "C3", "D3", "E3", "G3", "A3",
+      "C4", "D4", "E4", "G4", "A4",
+      "C5", "D5", "E5", "G5", "A5",
+      "C6", "D6", "E6", "G6", "A6"
+    ]
+  },
+  "master": {
+    "sample_rate": 44100,
+    "default_volume": 0.8,
+    "compressor": {
+      "threshold_db": -16.0,
+      "knee_db": 12.0,
+      "ratio": 4.0,
+      "attack_s": 0.003,
+      "release_s": 0.25
+    }
+  },
+  "drone": {
+    "enabled": true,
+    "frequency_hz": 65.41,
+    "harmonic2_gain": 0.35,
+    "volume": 0.08,
+    "cutoff_hz": 180.0
+  },
+  "melody": {
+    "base_volume": 0.24,
+    "glide_time_s": 0.04,
+    "min_filter_cutoff_hz": 350.0,
+    "max_filter_cutoff_hz": 4500.0
+  },
+  "rhythm": {
+    "hot_threshold": 0.12,
+    "max_pulse_volume": 0.18,
+    "subdivisions": {
+      "low": 2,
+      "mid": 4,
+      "high": 8
+    }
+  },
+  "spatial": {
+    "pan_range": 0.85,
+    "center_deadband": 0.05
+  },
+  "events": {
+    "delta_threshold": 0.65,
+    "cooldown_ms": 400,
+    "chime_freq1_hz": 880.0,
+    "chime_freq2_hz": 1760.0,
+    "accent_volume": 0.28,
+    "decay_s": 0.35
+  },
+  "calibration": {
+    "low": {
+      "label": "Low Baseline (Pristine Air)",
+      "value": 0.15,
+      "brightness": 0.25,
+      "hot": 0.05,
+      "panX": 0.5,
+      "delta": 0.05,
+      "event": false
+    },
+    "mid": {
+      "label": "Moderate Regional Plume",
+      "value": 0.50,
+      "brightness": 0.55,
+      "hot": 0.35,
+      "panX": 0.45,
+      "delta": 0.10,
+      "event": false
+    },
+    "high": {
+      "label": "High Concentration Plume",
+      "value": 0.88,
+      "brightness": 0.90,
+      "hot": 0.75,
+      "panX": 0.70,
+      "delta": 0.15,
+      "event": false
+    },
+    "event": {
+      "label": "Episodic Plume Burst / Wildfire",
+      "value": 0.75,
+      "brightness": 0.80,
+      "hot": 0.60,
+      "panX": 0.80,
+      "delta": 0.85,
+      "event": true
+    }
+  }
+}

@@ -1,8 +1,9 @@
 # Core pipeline (fetch, frames, features, captions, manifest, verify, audio):
 Pillow>=10.0
 numpy>=1.24
+scipy>=1.10.0
 PyYAML>=6.0          # build_all.py reads datasets.yaml
-# svs_fetch.py, render_audio.py use only the Python standard library otherwise.
+pytest>=7.0.0        # automated test suite
 
 # Optional — ingest_netcdf.py (sonify real NASA gridded data values):
 # xarray>=2024.0

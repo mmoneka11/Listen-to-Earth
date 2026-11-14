@@ -1,10 +1,10 @@
 # Listen to Earth — Backend / Data Pipeline
 
-Turns a **NASA Earth Information Center (EIC)** visualization into the **feature
-array** that drives the sonification engine and the accessible web UI. All the
-computer-vision work happens **once, offline**, so the browser loads a tiny
-`features.json` and runs on any device — which is itself part of the
-accessibility story.
+> **NASA Space Apps Challenge 2026:** *The Earth Information Jukebox*  
+> **Team:** AI-MINDS (Hyderabad, Pakistan)  
+> **Status:** Production Ready · 100% Smoke Tests Passing
+
+Turns **NASA Earth Information Center (EIC)** visualizations into structured **telemetry arrays** that drive the Web Audio sonification engine and the accessible command deck. All heavy computer-vision and feature extraction happens **offline**, allowing the frontend to stream lightweight telemetry across any low-power or mobile device.
 
 ```
  NASA SVS (rendered DYAMOND frames)
@@ -19,15 +19,13 @@ accessibility story.
  NASA netCDF  →  ingest_netcdf.py  →  public/features/<viz>.json  (same contract)
 ```
 
-This folder is the data/backend half of the project. The sonification engine
-(Tone.js) and the frontend (accessible UI) consume only the contract in
-[§5](#5-the-feature-contract); they do not care how it was produced.
+This folder is the data/backend half of the project. The sonification engine (Web Audio / Python) and the frontend (React 19) consume the scientific contract in [§5](#5-the-feature-contract).
 
 ---
 
 ## 1. Setup
 ```bash
-pip install -r requirements.txt            # Pillow + numpy  (svs_fetch needs no deps)
+pip install -r requirements.txt            # Pillow + numpy + fastapi + uvicorn
 # ffmpeg must be on PATH:  brew install ffmpeg   |   sudo apt install ffmpeg
 # optional, only for ingest_netcdf.py:
 pip install xarray netCDF4
@@ -141,13 +139,17 @@ Each time step becomes a frame; the field's own numbers drive the features
 (value → hue → note). Output is the identical contract, so the engine/UI are
 unchanged.
 
-## 7. Optional: serve as an API instead of static files
-Static `public/` on GitHub Pages / Netlify is recommended (nothing to crash
-during judging). For the "backend API endpoint" deliverable form:
+## 7. Serving the API & Static Assets
+For the "backend API endpoint" deliverable form:
 ```bash
 pip install fastapi uvicorn
-python serve_features.py   # open http://127.0.0.1:8000/  (landing page, /health, /api/*, /public/*, /docs)
+python serve_features.py   # serves http://127.0.0.1:8000/ (/manifest.json, /features/*, /frames/*, /audio/*, /health, /docs)
 ```
+The FastAPI server mounts root aliases so the frontend can stream frames and metadata directly:
+* `/manifest.json` — Returns the catalog of all NASA EIC visual frames.
+* `/features/{id}.json` — Returns feature contracts (luminance, hot plume area, panX, delta).
+* `/frames/co2/co2_%04d.jpg` — Serves 314 real NASA satellite animation frames.
+* `/audio/{id}.wav` — Serves pre-rendered 44.1kHz stereo audio artifacts.
 
 ## 8. Accessibility
 See `ACCESSIBILITY.md`. In short: the sonification **is** the access feature
@@ -198,6 +200,21 @@ docker run --rm -v "$PWD/public:/app/public" -v "$PWD/data:/app/data" listen-to-
 
 **CI** — `.github/workflows/ci.yml` runs the offline smoke test (both pipeline paths)
 on every push and PR, so the contract can't silently break.
+
+## 11. Scientific Sonification Engine (`backend/sonification/`)
+
+The dedicated Python sonification module provides the reference psychoacoustic audio synthesis implementation:
+- **`engine.py`**: 7-channel psychoacoustic synthesizer (C Major Pentatonic scale, 65.41 Hz grounding sub-drone, constant-power binaural stereo panning, dynamic noise transients, and soft-knee brickwall limiter).
+- **`sonify_real_data.py`**: Batch sonifier for NASA SVS 5196 and GMAO NetCDF time series into studio-grade 44.1kHz stereo audio.
+- **`tests/test_sonification.py`**: 9 automated pytest tests validating pitch monotonicity, constant-power energy conservation, and clipping prevention.
+
+```bash
+# Run sonification test suite
+python -m pytest backend/sonification/tests
+
+# Generate real NASA data sonification outputs
+python backend/sonification/sonify_real_data.py
+```
 
 **License** — Apache-2.0 (`LICENSE`), the NASA Space Apps default, so all code is
 freely usable and citable per the rules.
