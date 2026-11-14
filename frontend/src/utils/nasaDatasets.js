@@ -20,7 +20,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'ppm',
     baseValue: 412.0,
     rangeValue: 18.0,
-    imageUrl: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/co2/co2_0000.jpg',
   },
   sst: {
     id: 'sst',
@@ -40,7 +40,7 @@ export const NASA_CATALOG = {
     measurementUnit: '°C Anom',
     baseValue: -1.2,
     rangeValue: 3.8,
-    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/sst/sst_0000.jpg',
   },
   ozone: {
     id: 'ozone',
@@ -60,7 +60,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'Dobson Units',
     baseValue: 140.0,
     rangeValue: 160.0,
-    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/ozone/ozone_0000.jpg',
   },
   precip: {
     id: 'precip',
@@ -80,7 +80,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'mm/hr',
     baseValue: 0.0,
     rangeValue: 48.0,
-    imageUrl: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/precip/precip_0000.jpg',
   },
   solar: {
     id: 'solar',
@@ -100,7 +100,7 @@ export const NASA_CATALOG = {
     measurementUnit: '10⁻⁴ W/m²',
     baseValue: 0.5,
     rangeValue: 9.5,
-    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/solar/solar_0000.jpg',
   },
   ice: {
     id: 'ice',
@@ -120,7 +120,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'Million km²',
     baseValue: 3.8,
     rangeValue: 3.2,
-    imageUrl: 'https://images.unsplash.com/photo-1517999144091-3d9dca6d1843?w=800&auto=format&fit=crop&q=80',
+    imageUrl: '/frames/ice/ice_0000.jpg',
   },
 };
 
@@ -161,7 +161,7 @@ export function generateSyntheticDataset(datasetKey, frameCount = 60) {
       imageUrl:
         datasetKey === 'co2'
           ? `/frames/co2/co2_${String(i % 314).padStart(4, '0')}.jpg`
-          : null,
+          : `/frames/${datasetKey}/${datasetKey}_${String(i % 60).padStart(4, '0')}.jpg`,
     });
   }
 

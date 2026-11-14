@@ -143,7 +143,7 @@ export default function LiveStage({
       delta: 0,
       measurementText: '418.0 ppm CO2',
       caption: 'Calibrating planetary telemetry stream...',
-      imageUrl: null,
+      imageUrl: '/frames/co2/co2_0000.jpg',
     }),
     []
   );
