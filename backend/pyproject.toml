@@ -1,0 +1,6 @@
+[project]
+name = "listen-to-earth-backend"
+version = "1.0.0"
+
+[tool.vercel]
+entrypoint = "serve_features:app"
