@@ -158,7 +158,10 @@ export function generateSyntheticDataset(datasetKey, frameCount = 60) {
       timestamp: `T+${(i * (1 / meta.fps)).toFixed(1)}s`,
       measurementText: `${val} ${meta.measurementUnit}`,
       caption,
-      imageUrl: null, // Will use high-fidelity procedural planetary radar rendering
+      imageUrl:
+        datasetKey === 'co2'
+          ? `/frames/co2/co2_${String(i % 314).padStart(4, '0')}.jpg`
+          : null,
     });
   }
 

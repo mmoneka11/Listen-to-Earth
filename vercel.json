@@ -25,12 +25,6 @@
       }
     },
     {
-      "source": "/manifest.json",
-      "destination": {
-        "service": "backend"
-      }
-    },
-    {
       "source": "/(.*)",
       "destination": {
         "service": "frontend"
