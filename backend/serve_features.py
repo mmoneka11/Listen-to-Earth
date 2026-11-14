@@ -55,6 +55,7 @@ def load_manifest():
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health():
     m = load_manifest()
     n = len(m["visualizations"]) if m and "visualizations" in m else 0
@@ -62,6 +63,7 @@ def health():
 
 
 @app.get("/manifest.json")
+@app.get("/api/manifest.json")
 def manifest_root():
     m = load_manifest()
     if not m:
