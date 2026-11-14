@@ -40,7 +40,7 @@ export const NASA_CATALOG = {
     measurementUnit: '°C Anom',
     baseValue: -1.2,
     rangeValue: 3.8,
-    imageUrl: '/frames/sst/sst_0000.jpg',
+    imageUrl: null,
   },
   ozone: {
     id: 'ozone',
@@ -60,7 +60,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'Dobson Units',
     baseValue: 140.0,
     rangeValue: 160.0,
-    imageUrl: '/frames/ozone/ozone_0000.jpg',
+    imageUrl: null,
   },
   precip: {
     id: 'precip',
@@ -80,7 +80,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'mm/hr',
     baseValue: 0.0,
     rangeValue: 48.0,
-    imageUrl: '/frames/precip/precip_0000.jpg',
+    imageUrl: null,
   },
   solar: {
     id: 'solar',
@@ -100,7 +100,7 @@ export const NASA_CATALOG = {
     measurementUnit: '10⁻⁴ W/m²',
     baseValue: 0.5,
     rangeValue: 9.5,
-    imageUrl: '/frames/solar/solar_0000.jpg',
+    imageUrl: null,
   },
   ice: {
     id: 'ice',
@@ -120,7 +120,7 @@ export const NASA_CATALOG = {
     measurementUnit: 'Million km²',
     baseValue: 3.8,
     rangeValue: 3.2,
-    imageUrl: '/frames/ice/ice_0000.jpg',
+    imageUrl: null,
   },
 };
 
@@ -161,7 +161,7 @@ export function generateSyntheticDataset(datasetKey, frameCount = 60) {
       imageUrl:
         datasetKey === 'co2'
           ? `/frames/co2/co2_${String(i % 314).padStart(4, '0')}.jpg`
-          : `/frames/${datasetKey}/${datasetKey}_${String(i % 60).padStart(4, '0')}.jpg`,
+          : null,
     });
   }
 
