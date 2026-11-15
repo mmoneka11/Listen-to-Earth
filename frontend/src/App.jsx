@@ -13,7 +13,7 @@ import LiveStage from './components/LiveStage';
 import ScienceGuide from './components/ScienceGuide';
 import TeamMembers from './components/TeamMembers';
 import { soundEngine } from './utils/soundEngine';
-import { NASA_CATALOG, generateSyntheticDataset } from './utils/nasaDatasets';
+import { NASA_CATALOG } from './utils/nasaDatasets';
 import './App.css';
 
 function buildAutoCaption(frame, index, title = 'DYAMOND Global Carbon Dioxide') {
@@ -28,13 +28,8 @@ function buildAutoCaption(frame, index, title = 'DYAMOND Global Carbon Dioxide')
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('stage'); // 'stage' | 'guide' | 'team'
-  const [datasets, setDatasets] = useState(() => {
-    const catalog = {};
-    Object.keys(NASA_CATALOG).forEach((key) => {
-      catalog[key] = generateSyntheticDataset(key, 60);
-    });
-    return catalog;
-  });
+  const [datasets, setDatasets] = useState({});
+  const [dataSource, setDataSource] = useState('loading'); // loading | live | static | error
   const [selectedId, setSelectedId] = useState('co2');
   const [frameIndex, setFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -54,86 +49,98 @@ export default function App() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  // Load datasets: Start with complete scientific catalog + upgrade with real NASA SVS 5196 data from backend
+  // Load the REAL NASA data. Default: static files the backend produced (committed in
+  // public/). Set VITE_API_BASE to a running backend to connect to its live API instead.
+  // No synthetic/mock data is ever shown: a clear error is surfaced if the real data fails.
   useEffect(() => {
+    const API_BASE = (import.meta.env.VITE_API_BASE || '').replace(/\/+$/, '');
+    const staticUrl = (pp) =>
+      (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/') + String(pp).replace(/^\/+/, '');
+    const manifestUrl = API_BASE ? `${API_BASE}/api/visualizations` : staticUrl('manifest.json');
+    const featuresUrl = (item) =>
+      API_BASE ? `${API_BASE}/api/features/${item.id}` : staticUrl(item.features || `features/${item.id}.json`);
+    const frameUrl = (pattern, padded) => {
+      const rel = pattern.replace('%04d', padded).replace('{index}', padded);
+      return API_BASE ? `${API_BASE}/${rel.replace(/^\/+/, '')}` : staticUrl(rel);
+    };
+
     async function loadAllData() {
-      // 1. Initialize all 6 NASA catalog datasets with high-precision telemetry
-      const initialCatalog = {};
-      Object.keys(NASA_CATALOG).forEach((key) => {
-        initialCatalog[key] = generateSyntheticDataset(key, 60);
-      });
-
-      // 2. Fetch production NASA manifest.json & features from backend
       try {
-        const manifestRes = await fetch('/manifest.json');
-        if (manifestRes.ok) {
-          const manifestData = await manifestRes.json();
-          const manifestList = Array.isArray(manifestData)
-            ? manifestData
-            : (manifestData.visualizations || manifestData.datasets || []);
+        const manifestRes = await fetch(manifestUrl);
+        if (!manifestRes.ok) throw new Error(`manifest HTTP ${manifestRes.status}`);
+        const manifestData = await manifestRes.json();
+        const list = Array.isArray(manifestData)
+          ? manifestData
+          : (manifestData.visualizations || manifestData.datasets || []);
 
-          for (const item of manifestList) {
-            try {
-              let featUrl = item.featuresUrl || item.features || `/features/${item.id}.json`;
-              if (!featUrl.startsWith('/')) featUrl = '/' + featUrl;
+        const catalog = {};
+        for (const item of list) {
+          const featRes = await fetch(featuresUrl(item));
+          if (!featRes.ok) throw new Error(`features ${item.id} HTTP ${featRes.status}`);
+          const featJson = await featRes.json();
+          const pattern = item.frame_pattern || item.framePattern || 'frames/co2/co2_%04d.jpg';
+          const fps = featJson.fps || item.fps || 12;
 
-              const featRes = await fetch(featUrl);
-              if (featRes.ok) {
-                const featJson = await featRes.json();
-                const pattern = item.frame_pattern || item.framePattern || 'frames/co2/co2_%04d.jpg';
+          const frames = (featJson.frames || []).map((f, idx) => {
+            const padded = String(f.i ?? idx).padStart(4, '0');
+            const val = (412 + (f.brightness ?? 0.5) * 18).toFixed(1);
+            return {
+              ...f,
+              imageUrl: frameUrl(pattern, padded),
+              measurementText: `${val} ppm CO2`,
+              timestamp_seconds: idx * (1 / fps),
+              timestamp: `T+${(idx * (1 / fps)).toFixed(1)}s`,
+              caption: buildAutoCaption(f, idx, item.title || 'DYAMOND Global Carbon Dioxide'),
+            };
+          });
 
-                const frames = (featJson.frames || []).map((f, idx) => {
-                  const padded = String(f.i ?? idx).padStart(4, '0');
-                  let imageUrl = pattern.includes('%04d')
-                    ? pattern.replace('%04d', padded)
-                    : pattern.includes('{index}')
-                    ? pattern.replace('{index}', padded)
-                    : null;
-
-                  if (imageUrl && !imageUrl.startsWith('/')) {
-                    imageUrl = '/' + imageUrl;
-                  }
-
-                  const val = (412 + (f.brightness ?? 0.5) * 18).toFixed(1);
-
-                  return {
-                    ...f,
-                    imageUrl,
-                    measurementText: `${val} ppm CO2`,
-                    timestamp_seconds: idx * (1 / (featJson.fps || 12)),
-                    timestamp: `T+${(idx * (1 / (featJson.fps || 12))).toFixed(1)}s`,
-                    caption: buildAutoCaption(f, idx, item.title || 'DYAMOND Global Carbon Dioxide'),
-                  };
-                });
-
-                initialCatalog[item.id] = {
-                  ...NASA_CATALOG[item.id],
-                  id: item.id,
-                  tag: item.svsId ? `NASA SVS #${item.svsId}` : 'NASA SVS #5196',
-                  title: item.title || 'DYAMOND Global Carbon Dioxide (NASA SVS 5196)',
-                  subtitle: item.description || 'Global atmospheric CO2 plumes (NASA GEOS DYAMOND model)',
-                  fps: featJson.fps || item.fps || 12,
-                  sourceCitation: item.sourceCitation || 'NASA Scientific Visualization Studio & EIC',
-                  sourceUrl: item.sourceUrl || item.source_url || 'https://svs.gsfc.nasa.gov/5196/',
-                  isMock: false,
-                  frames,
-                };
-              }
-            } catch (err) {
-              console.warn('Features fetch skipped for item:', item.id, err);
-            }
-          }
+          catalog[item.id] = {
+            ...(NASA_CATALOG[item.id] || NASA_CATALOG.co2),
+            id: item.id,
+            tag: 'NASA SVS #5196',
+            title: item.title || 'DYAMOND Global Carbon Dioxide (NASA SVS 5196)',
+            subtitle: item.description || 'Global atmospheric CO2 plumes (NASA GEOS DYAMOND model)',
+            fps,
+            sourceCitation: 'NASA Scientific Visualization Studio & EIC',
+            sourceUrl: item.source_url || item.sourceUrl || 'https://svs.gsfc.nasa.gov/5196',
+            isMock: false,
+            frames,
+          };
         }
-      } catch (err) {
-        console.warn('Backend manifest fetch error, using synthetic baseline:', err);
-      }
 
-      setDatasets(initialCatalog);
-      setSelectedId('co2');
+        if (!Object.keys(catalog).length) throw new Error('manifest had no visualizations');
+        setDatasets(catalog);
+        setSelectedId(catalog.co2 ? 'co2' : Object.keys(catalog)[0]);
+        setDataSource(API_BASE ? 'live' : 'static');
+      } catch (err) {
+        console.error('Real NASA data failed to load.', err);
+        setDatasets({});
+        setDataSource('error');
+      }
     }
 
     loadAllData();
   }, []);
+
+  // Visible honesty indicator: warn if the real NASA data could not be loaded.
+  useEffect(() => {
+    const id = 'lte-data-badge';
+    let el = document.getElementById(id);
+    if (dataSource === 'error') {
+      if (!el) {
+        el = document.createElement('div');
+        el.id = id;
+        el.setAttribute('role', 'status');
+        document.body.appendChild(el);
+      }
+      el.textContent = '\u26A0 Could not load the NASA data files \u2014 check deployment / data paths';
+      el.style.cssText =
+        'position:fixed;bottom:12px;left:12px;z-index:99999;background:#7a1f1f;color:#fff;' +
+        'padding:6px 10px;border-radius:8px;font:500 12px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+    } else if (el) {
+      el.remove();
+    }
+  }, [dataSource]);
 
   const activeDataset = datasets[selectedId] || datasets.co2 || {
     id: 'co2',

@@ -66,7 +66,7 @@ class SoundEngine {
     const masterNorm = Math.max(0, Math.min(1, masterVolume / 100));
     if (masterNorm === 0) return;
 
-    // MODE A: Pre-mapped mock format (frontend_mock_data.json)
+    // MODE A: optional pre-mapped audio format (frame.audio = {note,octave,...})
     if (frame.audio) {
       const { note, octave, volume, pan, rhythm } = frame.audio;
       const pitch = `${note}${octave}`;
