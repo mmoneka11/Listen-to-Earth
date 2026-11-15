@@ -1,125 +1,162 @@
 # Listen to Earth — The Earth Information Jukebox
 
-[![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/2026/find-a-team/ai-minds/)
+[![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/)
 [![Challenge: The Earth Information Jukebox](https://img.shields.io/badge/Challenge-Earth%20Information%20Jukebox-orange.svg)](https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/)
-[![Team: AI-MINDS](https://img.shields.io/badge/Team-AI--MINDS%20(Hyderabad%2C%20Pakistan)-brightgreen.svg)](https://www.spaceappschallenge.org/2026/find-a-team/ai-minds/)
-[![Accessibility: WCAG 2.2 AAA](https://img.shields.io/badge/Accessibility-WCAG%202.2%20AAA-success.svg)](#accessibility--tactile-standards)
+[![Team: AI-MINDS](https://img.shields.io/badge/Team-AI--MINDS-brightgreen.svg)](https://www.spaceappschallenge.org/2026/find-a-team/ai-minds/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-> **Listen to Earth** is a scientific web application and sonification engine that transforms **NASA Earth Information Center (EIC)** visualizations into dynamic, multi-sensory soundscapes in real time. By translating visual satellite animation frames into deterministic acoustic parameters, it allows sighted, blind, and low-vision researchers to hear the pulse of our changing planet.
+> **Listen to Earth** turns **NASA Earth Information Center (EIC)** visualizations into sound,
+> in real time, so sighted, blind, and low-vision users can *hear* our changing planet.
+> Each animation frame is reduced to a few data-driven features, and those features drive a
+> deterministic soundscape — colour becomes melody, brightness becomes octave and volume,
+> activity becomes rhythm, position becomes stereo pan, and sudden change becomes an accent.
+
+**Live app:** `<ADD DEPLOYED URL>` · **Demo video:** `<ADD DEMO LINK>` · **Repo:** https://github.com/mmoneka11/Listen-to-Earth
 
 ---
 
-## 🌍 Executive Summary
+## Executive summary
 
-NASA’s Earth Information Center produces stunning visualizations of atmospheric chemistry, ocean currents, and climate trends. However, presenting Earth science through visualization alone limits who can reach it.
-
-**Listen to Earth** addresses NASA's *Earth Information Jukebox* challenge directly by pairing every EIC visual frame with a dynamically generated sonification. Here, sound is not an afterthought or background music—it is the **primary sensory translation of the underlying data**:
-* **Atmospheric Concentration & Brightness** drive melody across a consonant **C-Major Pentatonic scale ($C_3 \to A_6$)** and open a dynamic **$350\text{ Hz} \to 4500\text{ Hz}$ formant filter**.
-* **Geographic Longitude** pans the soundscape across binaural stereo space via a **$3\text{ dB}$ constant-power pan law** ($-1.0\text{ West} \to +1.0\text{ East}$).
-* **Plume Coverage Area** triggers **$1\times, 2\times, 4\times$ metronomic overtone pulses** ($2 \times f_0$) once plumes cover more than $12\%$ of the planetary disk.
-* **Rapid Flux Deltas ($\Delta > 0.45$)** trigger **dual $880\text{ Hz}$ ($A_5$) and $1760\text{ Hz}$ ($A_6$) crystal chimes** to highlight transient anomalies like wildfires and solar bursts.
-* **Grounding Sub-Drone ($C_2 = 65.41\text{ Hz}$)** provides a foundational acoustic baseline so users never lose their sensory bearing.
+NASA's Earth Information Center produces stunning visualizations of atmospheric chemistry,
+ocean currents, and climate trends — but presenting Earth science visually alone limits who
+can reach it. **Listen to Earth** answers the *Earth Information Jukebox* challenge by pairing
+every EIC visual frame with a dynamically generated sonification, where **sound is the primary
+sensory translation of the data, not background music**. A blind user can experience the same
+climate trend a sighted user sees.
 
 ---
 
-## 🚀 Key Features
+## What is actually built (honest scope)
 
-### 1. Three-Screen Scientific Command Deck
-* **Screen 1 — Live Stage (`/`)**:
-  * 3-column command deck with real NASA satellite frames and high-fidelity procedural cartography.
-  * **Planetary Stream Switcher**: 1-click switching across all 6 verified NASA datasets.
-  * **5-Channel Telemetry Rack**: Real-time readouts of pitch, note, dB gain, filter cutoff, stereo pan, pulse rhythm, and anomaly flags.
-  * **🧪 Scientific Value Injector (Manual Test Lab)**: Direct numeric inputs and sliders for researchers to test custom parameters with real-time audio auditioning and 5 NASA calibration presets (`PPM-MAX`, `BASE`, `ANOMALY`, `ARCTIC`, `EQUATOR`).
-* **Screen 2 — Science & Accessibility Guide (`/guide`)**:
-  * Unified scientific documentation featuring an interactive **harmonic oscilloscope**, deep dive into the **5-channel translation protocol**, and the **WCAG 2.2 AAA accessibility manual**.
-  * Speech narration telemetry buffer with Brief vs Standard verbosity switcher.
-* **Screen 3 — Team AI-MINDS (`/team`)**:
-  * Official NASA Space Apps roster featuring all 5 members, competency tags, and the official team artwork.
+| Capability | Status |
+| :--- | :--- |
+| **DYAMOND Global CO₂ — NASA SVS #5196** (real rendered frames → features → sound) | ✅ Fully implemented end-to-end (314 frames) |
+| **DYAMOND Phase II — NASA GMAO NetCDF CO₂** (real gridded data values → sound) | ✅ Implemented (offline render) |
+| Real-time browser sonification (Web Audio / Tone.js) | ✅ |
+| Offline Python sonification engine + WAV export | ✅ |
+| Accessible UI: keyboard control, screen-reader captions, high contrast | ✅ |
+| Additional domains (SST, Ozone, GPM, SDO, Sea Ice) | ⚙️ **Engine tuning profiles / roadmap** — not yet wired to real NASA frames |
 
-### 2. Dual Sonification Pipeline
-1. **Browser-Native Web Audio API ([`soundEngine.js`](frontend/src/utils/soundEngine.js))**: Zero-dependency, low-latency audio synthesizer with soft portamento frequency gliding ($35\text{ ms}$) and brickwall dynamics compressor.
-2. **Python Offline Audio Engine ([`backend/sonification/engine.py`](backend/sonification/engine.py))**: 44.1 kHz 16-bit stereo WAV synthesizer with soft-$tanh$ saturation powering batch offline rendering and audio exports.
-
-### 3. Accessible by Design (WCAG 2.2 AAA / Section 508)
-* **Screen-Reader Sync**: `aria-live="polite"` speech buffers describing environmental trends and coordinates per frame.
-* **Full Keyboard Keymap**: Hands-free keyboard control (<kbd>Space</kbd> for Play/Pause, <kbd>Esc</kbd> for Stop, <kbd>R</kbd> for Restart, <kbd>←</kbd>/<kbd>→</kbd> for step frames, <kbd>1</kbd>–<kbd>3</kbd> for screens).
-* **Tactile & Haptic Frequency Mapping**: Calibrated $65.4\text{ Hz} \to 1760\text{ Hz}$ spectrum tailored for refreshable braille displays and low-frequency vibration transducers.
-* **7:1 High-Contrast Theme**: Exceeds WCAG AAA color contrast standards.
 
 ---
 
-## 📊 Verified NASA Datasets
+## How it works
 
-| Dataset | NASA SVS ID | Domain | Base Unit | Acoustic Tuning |
-| :--- | :---: | :--- | :---: | :--- |
-| **DYAMOND Global Carbon Dioxide** | [SVS #5196](https://svs.gsfc.nasa.gov/5196/) | Global Carbon Cycle | $412\text{--}430\text{ ppm}$ | Strings & C-Major Pentatonic ($C_3\text{--}A_6$) |
-| **Sea Surface Temperature Anomaly** | [SVS #4752](https://svs.gsfc.nasa.gov/4752/) | Ocean Dynamics & El Niño | $-2.4^\circ\text{C}\text{ to }+3.8^\circ\text{C}$ | Deep Warm Sub-Drone & Oceanic Waves |
-| **Antarctic Ozone Hole Recovery** | [SVS #3890](https://svs.gsfc.nasa.gov/3890/) | Atmospheric Chemistry | $140\text{--}300\text{ DU}$ | High-Register Resonant Crystal Bells |
-| **Global Precipitation Measurement (GPM)** | [SVS #4272](https://svs.gsfc.nasa.gov/4272/) | Hydrologic Weather | $0\text{--}48\text{ mm/hr}$ | Organic Rain Textures & Pulse Density |
-| **Solar Dynamics Observatory Flares (SDO)** | [SVS #4812](https://svs.gsfc.nasa.gov/4812/) | Heliophysics / Space Weather | $10^{-4}\text{ W/m}^2$ | Solar Flare Microtonal Arpeggios |
-| **Arctic Sea Ice Minimum Extent** | [SVS #5032](https://svs.gsfc.nasa.gov/5032/) | Cryosphere Polar Trends | Million $\text{km}^2$ | Crystalline Glacial Tones |
-
----
-
-## 👥 Team AI-MINDS (Hyderabad, Pakistan)
-
-* **Sobia Sattar** — Team Lead & Project Researcher (`@sobiaa`, Team Owner)
-* **Moneka Meghwar** — Frontend & UI/UX Developer (`@mmoneka11`)
-* **Sumera Shar** — Data Analyst & Visualizer (`@sumera45`)
-* **Muhammad Azfar** — Software Architect & QA Engineer (`@azfarqa`)
-* **Daya Nand** — Sonification Engineer & Math Modeler (`@nandd1224`)
-
----
-
-## 🛠️ Quick Start & Running Locally
-
-### Prerequisites
-* **Node.js** (v18+) & **npm**
-* **Python** (3.10+)
-
-### 1. Start Backend API Server
-```bash
-# Navigate to backend and install dependencies
-cd backend
-pip install -r requirements.txt
-
-# Start FastAPI server on port 8000
-python serve_features.py
 ```
-*API endpoints: `http://127.0.0.1:8000/manifest.json`, `/features/co2.json`, `/frames/co2/`, `/docs`.*
+NASA EIC visualization (SVS 5196 frames  |  GMAO NetCDF values)
+        │
+        ▼  data pipeline (backend/)
+  per-frame feature array  { hue, brightness, hot, panX, delta }  + plain-language captions
+        │
+        ├─► Browser engine (frontend/src/utils/soundEngine.js, Tone.js)  → real-time sound + synced visuals
+        └─► Python engine (backend/sonification/engine.py)               → offline 44.1 kHz stereo WAV
+```
 
-### 2. Start Frontend Dev Server
+### Sonification mapping 
+
+| Data dimension | Acoustic mapping |
+| :--- | :--- |
+| Concentration / value | Note in **C-major pentatonic** scale (C3–A6) — always consonant |
+| Brightness | Octave lift + low-pass formant filter (350 Hz → 4500 Hz) + volume |
+| Plume coverage (`hot`) | Rhythmic pulse subdivisions (2 / 4 / 8 per frame) |
+| Longitude centroid (`panX`) | Constant-power stereo pan (West-left → East-right) |
+| Rapid change (`delta`) | Dual chime accent (A5 / A6) for anomalies |
+| Planetary grounding | Continuous sub-drone (C2, 65.41 Hz) |
+| Master bus | Compressor + brickwall limiter (headphone / screen-reader safe) |
+
+---
+
+## Repository layout
+
+```
+Listen-to-Earth/
+├── backend/                 # data pipeline + API + offline sonification
+│   ├── svs_fetch.py         # download NASA SVS assets via the SVS JSON API
+│   ├── extract_frames.py    # ffmpeg → numbered display frames
+│   ├── extract_features.py  # frames → features.json (+ accessibility captions)
+│   ├── ingest_netcdf.py     # real NASA gridded data values → same contract
+│   ├── sonification/        # engine.py (Python) + engine.ts + mapping_config.json + real renders
+│   ├── serve_features.py    # FastAPI app: landing page, /api, static /public
+│   ├── verify_output.py     # contract + citation + accessibility validator
+│   ├── build_all.py         # fetch → frames → features → audio → manifest → verify
+│   └── DATASETS.md / ACCESSIBILITY.md / Dockerfile / tests/
+└── frontend/                # React + Vite accessible UI (Tone.js live sonification)
+    ├── src/App.jsx, components/, utils/soundEngine.js, utils/nasaDatasets.js
+    └── public/ (frames, features, audio, team photos)
+```
+
+---
+
+## Run it locally
+
+**Backend (data + API):**
 ```bash
-# Navigate to frontend and install dependencies
+cd backend
+pip install -r requirements.txt fastapi uvicorn
+python build_all.py --audio      # build CO₂ from real NASA data, render audio, verify
+python serve_features.py         # http://127.0.0.1:8000
+```
+
+**Frontend (accessible UI):**
+```bash
 cd frontend
 npm install
-
-# Start Vite dev server on port 5173
-npm run dev
+npm run dev                      # http://localhost:5173
 ```
-*Open `http://localhost:5173` in your browser.*
 
-### 3. Run Quality Assurance & Unit Tests
-```bash
-# Python Sonification Unit Tests (9/9 passing)
-python -m pytest backend/sonification/tests -v
-
-# Backend Pipeline Smoke Tests (All passing)
-python backend/tests/smoke_test.py
-
-# Frontend Linter (0 warnings, 0 errors)
-cd frontend
-npx oxlint
-
-# Production Build
-npm run build
-```
+Deployment is configured for Vercel (`vercel.json`): the Vite frontend is served statically and
+`/api/*` + `/health` are routed to the FastAPI backend.
 
 ---
 
-## ⚖️ Citations & AI Disclosure
-* **NASA Data Sources**: NASA Scientific Visualization Studio (SVS #5196, #4752, #3890, #4272, #4812, #5032); NASA Earth Information Center ([earth.gov](https://earth.gov)); NASA GMAO GEOS model data.
-* **AI Disclosure**: Code structure and design synthesis were assisted by artificial intelligence. All mathematical mappings, unit test assertions, audio synthesis formulas, and NASA telemetry ingest pipelines are deterministic functions of scientific data. No NASA trademarks or official seals were modified.
+## Accessibility
 
-**License**: Apache-2.0
+Accessibility is the point, not a layer. Highlights:
+- **Sonification as the access feature** — the sound is a full alternative to sight.
+- **Plain-language captions** generated from the data (backend `captions` track) announced via `aria-live`.
+- **Full keyboard control** (Space play/pause, Esc stop, R restart, ←/→ step frames, 1–3 screens).
+- **High-contrast theme** and `prefers-reduced-motion` support.
+- **Low-frequency tactile mapping** suited to haptic / braille-adjacent output.
+
+See `backend/ACCESSIBILITY.md` for the full approach.
+
+---
+
+## NASA data & credits
+
+**NASA data used (cite these):**
+- **DYAMOND Global Carbon Dioxide** — NASA Scientific Visualization Studio #5196 — https://svs.gsfc.nasa.gov/5196
+- **NASA Earth Information Center (EIC)** — https://earth.gov
+- **GMAO DYAMOND Phase II** (scientific source of the CO₂ run) — https://gmao.gsfc.nasa.gov/gmao-products/dyamond-phase-ii/data-access_dyamond-phase-ii/
+- **NCCS DYAMOND v2 data share** (raw grids) — https://portal.nccs.nasa.gov/datashare/G5NR/DYAMONDv2/03KM/
+
+Credit: *NASA's Scientific Visualization Studio* and *NASA Global Modeling and Assimilation Office (GMAO)*.
+
+**Tools & libraries:** React, Vite, Tone.js, lucide-react (frontend); Python, Pillow, NumPy, ffmpeg, FastAPI, xarray/netCDF4 (backend). AI assistance: Anthropic Claude (code & docs).
+
+### SI / AI disclosure 
+Portions of this project's **code and documentation** were written with AI assistance
+(Anthropic's Claude & Antigravity). All **NASA data processing, the sonification mapping, and the generated
+audio are deterministic outputs of our own code — not AI-generated audio**. No NASA branding,
+logos, flags, or mission identifiers were generated or modified by any SI tool. Any AI-generated
+imagery used in the demo is watermarked as such.
+
+---
+
+## Team AI-MINDS
+
+| Member | Role | Contribution
+| :--- | :--- | :--- | 
+| **Sobia** | Team Lead | 
+| **Moneka Meghwar** | AI Developer | sonification engine & data/AI & project documentation |
+| **Azfar** | Frontend Developer |
+| **Dayanand** | Frontend Developer |
+| **Sumera Shar** | Presentation Lead |
+
+
+
+---
+
+## License
+
+Apache-2.0 (`LICENSE`) — the NASA Space Apps default, so all code is freely usable and citable.
