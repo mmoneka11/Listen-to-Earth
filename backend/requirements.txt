@@ -1,14 +1,13 @@
 # Core pipeline (fetch, frames, features, captions, manifest, verify, audio):
 Pillow>=10.0
 numpy>=1.24
-scipy>=1.10.0
 PyYAML>=6.0          # build_all.py reads datasets.yaml
-pytest>=7.0.0        # automated test suite
+# svs_fetch.py, render_audio.py use only the Python standard library otherwise.
 
 # Optional — ingest_netcdf.py (sonify real NASA gridded data values):
 # xarray>=2024.0
 # netCDF4>=1.6
 
-# API & server:
-fastapi>=0.110
-uvicorn>=0.29
+# Optional — serve_features.py (backend API deliverable form):
+# fastapi>=0.110
+# uvicorn>=0.29

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Play,
   Pause,
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import VisualizerCanvas from './components/VisualizerCanvas';
 import { soundEngine } from './utils/soundEngine';
+
+const BACKEND_API_ORIGIN = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 const BUILTIN_META = {
   demo_orbit: {
@@ -51,6 +53,24 @@ function buildAutoCaption(frame, index) {
   return `${timeLabel}: Atmospheric signal intensity at ${intensity}% (${trend}).`;
 }
 
+function resolveFrameCaption(frame, index, timedCaptions = []) {
+  const frameNum = frame.i ?? index;
+  if (Array.isArray(timedCaptions) && timedCaptions.length > 0) {
+    const match = timedCaptions.find(
+      (entry) => frameNum >= entry.start && frameNum <= entry.end
+    );
+    if (match?.text) return match.text;
+  }
+  return buildAutoCaption(frame, index);
+}
+
+function resolveUrlWithBase(pathOrUrl, basePrefix) {
+  if (!pathOrUrl) return null;
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  const cleanPath = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  return `${basePrefix}${cleanPath}`;
+}
+
 function formatTime(seconds = 0) {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -68,7 +88,7 @@ export default function App() {
   const [speed, setSpeed] = useState(1.0);
   const [announcement, setAnnouncement] = useState('Ready. Select a visualization and press Play.');
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [activeNav, setActiveNav] = useState('stage');
+  const [activeNav, setActiveNav] = useState('stage-section');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const timerRef = useRef(null);
@@ -85,50 +105,107 @@ export default function App() {
     async function loadAllData() {
       const loadedDatasets = {};
 
-      // 1. Auto-detect production NASA manifest.json if added by teammates
-      try {
-        const manifestRes = await fetch('/manifest.json');
-        if (manifestRes.ok) {
-          const manifestList = await manifestRes.json();
-          for (const item of manifestList) {
-            try {
-              const featRes = await fetch(item.featuresUrl);
-              if (featRes.ok) {
-                const featJson = await featRes.json();
-                const frames = (featJson.frames || []).map((f, idx) => {
-                  const padded = String(f.i ?? idx).padStart(4, '0');
-                  const imageUrl = item.framePattern
-                    ? item.framePattern.replace('{index}', padded)
-                    : null;
-                  return {
-                    ...f,
-                    imageUrl,
-                    caption: buildAutoCaption(f, idx),
-                  };
-                });
+      const manifestSources = [
+        { manifestUrl: '/manifest.json', assetPrefix: '' },
+        {
+          manifestUrl: `${BACKEND_API_ORIGIN}/public/manifest.json`,
+          assetPrefix: `${BACKEND_API_ORIGIN}/public`,
+        },
+      ];
 
-                loadedDatasets[item.id] = {
-                  id: item.id,
-                  tag: item.svsId ? `NASA SVS #${item.svsId}` : 'NASA EIC',
-                  title: item.title,
-                  subtitle: item.description,
-                  fps: featJson.fps || item.fps || 4,
-                  sourceCitation: item.sourceCitation || 'NASA Earth Information Center (earth.gov)',
-                  sourceUrl: item.sourceUrl || 'https://svs.gsfc.nasa.gov/5196/',
-                  isMock: false,
-                  frames,
+      for (const source of manifestSources) {
+        try {
+          const manifestRes = await fetch(source.manifestUrl);
+          if (!manifestRes.ok) continue;
+
+          const manifestData = await manifestRes.json();
+          const vizList = Array.isArray(manifestData)
+            ? manifestData
+            : manifestData.visualizations || manifestData.items || [];
+
+          for (const item of vizList) {
+            const vizSlug = item.id || item.viz || 'co2';
+            const rawFeaturesPath =
+              item.featuresUrl ||
+              item.features_url ||
+              item.features ||
+              `/features/${vizSlug}.json`;
+            const resolvedFeaturesUrl = resolveUrlWithBase(
+              rawFeaturesPath,
+              source.assetPrefix
+            );
+
+            try {
+              const featRes = await fetch(resolvedFeaturesUrl);
+              if (!featRes.ok) continue;
+              const featJson = await featRes.json();
+              const timedCaptions = featJson.captions || [];
+
+              const frames = (featJson.frames || []).map((f, idx) => {
+                const frameNum = f.i ?? idx;
+                const padded = String(frameNum).padStart(4, '0');
+                const pattern = item.framePattern || item.frame_pattern;
+
+                let rawFramePath = null;
+                if (f.image || f.frame_url) {
+                  rawFramePath = f.image || f.frame_url;
+                } else if (pattern) {
+                  rawFramePath = pattern
+                    .replace('{index}', padded)
+                    .replace(/%0\d+d/g, padded)
+                    .replace(/%d/g, String(frameNum));
+                } else {
+                  const frameFolder = item.frames_dir || item.framesDir || `/frames/${vizSlug}`;
+                  rawFramePath = `${frameFolder.replace(/\/$/, '')}/${vizSlug}_${padded}.jpg`;
+                }
+
+                const altFramePath = rawFramePath.includes('/frame_')
+                  ? rawFramePath.replace('/frame_', '/')
+                  : null;
+
+                return {
+                  ...f,
+                  imageUrl: resolveUrlWithBase(rawFramePath, source.assetPrefix),
+                  altImageUrl: resolveUrlWithBase(altFramePath, source.assetPrefix),
+                  caption: resolveFrameCaption(f, idx, timedCaptions),
                 };
-              }
+              });
+
+              const datasetKey = featJson.viz || vizSlug;
+              loadedDatasets[datasetKey] = {
+                id: datasetKey,
+                tag: item.svsId ? `NASA SVS #${item.svsId}` : 'NASA EIC',
+                title: featJson.title || item.title || datasetKey,
+                subtitle:
+                  featJson.description ||
+                  item.description ||
+                  'NASA Earth Information Center visualization',
+                fps: featJson.fps || item.fps || 12,
+                sourceCitation:
+                  item.sourceCitation ||
+                  item.source_citation ||
+                  'NASA Earth Information Center (earth.gov)',
+                sourceUrl:
+                  featJson.source_url ||
+                  item.source_url ||
+                  item.sourceUrl ||
+                  'https://svs.gsfc.nasa.gov/5196/',
+                isMock: false,
+                frames,
+              };
             } catch {
-              // Skip if individual feature file isn't ready yet
+              // Skip individual feature file if unavailable
             }
           }
+
+          if (Object.keys(loadedDatasets).length > 0) {
+            break;
+          }
+        } catch {
+          // Try next manifest source
         }
-      } catch {
-        // Continue with mock dataset
       }
 
-      // 2. Load frontend_mock_data.json
       try {
         const mockRes = await fetch('/data/frontend_mock_data.json');
         if (mockRes.ok) {
@@ -277,7 +354,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   });
 
-  // Compute SVG sparkline coordinates directly from activeFrames
   const sparklineData = useMemo(() => {
     if (!activeFrames.length) return { points: '', area: '', markers: [] };
     const w = 320;
@@ -338,12 +414,10 @@ export default function App() {
       <div className="starfield-bg" aria-hidden="true" />
       <div className="ambient-aurora" aria-hidden="true" />
 
-      {/* Screen-reader live region */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement} {currentFrame?.caption}
       </div>
 
-      {/* Top Navigation Bar */}
       <nav className="top-navbar" aria-label="Primary Navigation">
         <div className="nav-inner">
           <a
@@ -386,7 +460,7 @@ export default function App() {
               Sonification Model
             </button>
             <a
-              href="https://svs.gsfc.nasa.gov/5196/"
+              href={activeDataset.sourceUrl || 'https://svs.gsfc.nasa.gov/5196/'}
               target="_blank"
               rel="noreferrer"
               className="nav-external"
@@ -409,7 +483,6 @@ export default function App() {
       </nav>
 
       <div className="app-shell">
-        {/* Cinematic Hero Section */}
         <header className="hero-section">
           <div className="hero-badges">
             <span className="pill-badge cyan">
@@ -421,7 +494,7 @@ export default function App() {
               {isPlaying ? 'Live Sonification Active' : 'Ready to Stream'}
             </span>
             <span className="pill-badge muted">
-              {activeDataset.isMock ? 'Demo Dataset' : 'NASA EIC Telemetry'}
+              {activeDataset.isMock ? 'Demo Dataset' : 'NASA EIC Pipeline'}
             </span>
           </div>
 
@@ -468,7 +541,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Primary Earth Visualization + Integrated Streaming Jukebox */}
         <section
           id="stage-section"
           aria-labelledby="stage-heading"
@@ -491,12 +563,14 @@ export default function App() {
                 {String(activeFrames.length).padStart(2, '0')}
               </span>
               <span className="telemetry-chip">
-                {formatTime(currentFrame?.timestamp_seconds ?? frameIndex)}
+                {formatTime(
+                  currentFrame?.timestamp_seconds ??
+                    frameIndex / (activeDataset.fps || 1)
+                )}
               </span>
             </div>
           </div>
 
-          {/* Immersive Canvas Stage */}
           <VisualizerCanvas
             frame={currentFrame}
             videoTitle={activeDataset.title}
@@ -504,7 +578,6 @@ export default function App() {
             reducedMotion={reducedMotion}
           />
 
-          {/* Live Synchronized Narration Strip */}
           <div className="narration-bar" role="region" aria-label="Live frame audio description">
             <div className="narration-badge">
               <Waves size={15} aria-hidden="true" />
@@ -515,12 +588,13 @@ export default function App() {
             </p>
           </div>
 
-          {/* Integrated Streaming Jukebox Dock */}
           <div className="player-dock" role="group" aria-label="Earth Jukebox Audio Player">
-            {/* Timeline Progress Scrubber */}
             <div className="timeline-row">
               <span className="time-code">
-                {formatTime(currentFrame?.timestamp_seconds ?? frameIndex)}
+                {formatTime(
+                  currentFrame?.timestamp_seconds ??
+                    frameIndex / (activeDataset.fps || 1)
+                )}
               </span>
               <div className="scrubber-track-wrap">
                 <label htmlFor="frame-scrubber" className="sr-only">
@@ -540,12 +614,11 @@ export default function App() {
               <span className="time-code">
                 {formatTime(
                   activeFrames[activeFrames.length - 1]?.timestamp_seconds ??
-                    Math.max(0, activeFrames.length - 1)
+                    Math.max(0, activeFrames.length - 1) / (activeDataset.fps || 1)
                 )}
               </span>
             </div>
 
-            {/* Playback Buttons + Volume & Speed */}
             <div className="dock-controls-row">
               <div className="dock-left-status">
                 <span className={`playback-pill ${isPlaying ? 'active' : ''}`}>
@@ -664,9 +737,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Scientific Telemetry & Dataset Selection Grid */}
         <div className="lower-grid">
-          {/* Dataset Picker */}
           <section
             id="datasets-section"
             aria-labelledby="picker-heading"
@@ -716,7 +787,6 @@ export default function App() {
             </div>
           </section>
 
-          {/* Scientific Telemetry & Live Graph Card */}
           <section aria-labelledby="telemetry-heading" className="glass-card">
             <div className="card-header">
               <div>
@@ -726,7 +796,6 @@ export default function App() {
               <Activity size={18} className="cyan-icon" aria-hidden="true" />
             </div>
 
-            {/* Key Metrics */}
             <div className="kpi-row">
               <div className="kpi-box">
                 <span className="kpi-label">Luminance</span>
@@ -748,7 +817,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Spatial Balance Meter */}
             <div className="spatial-meter">
               <div className="spatial-labels">
                 <span>West (-1.0)</span>
@@ -761,7 +829,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Sequence Luminance Trajectory Chart */}
             <div className="sparkline-panel">
               <div className="sparkline-header">
                 <span>Sequence Brightness Curve</span>
@@ -806,7 +873,6 @@ export default function App() {
           </section>
         </div>
 
-        {/* Sonification Model Explanation Cards */}
         <section
           id="mapping-section"
           aria-labelledby="mapping-heading"
@@ -858,7 +924,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="site-footer">
           <div className="footer-item">
             <Keyboard size={15} className="cyan-icon" aria-hidden="true" />
@@ -874,7 +939,11 @@ export default function App() {
                 ? `${projectInfo.important_note} `
                 : ''}
               Scientific Data Source:{' '}
-              <a href="https://svs.gsfc.nasa.gov/5196/" target="_blank" rel="noreferrer">
+              <a
+                href={activeDataset.sourceUrl || 'https://svs.gsfc.nasa.gov/5196/'}
+                target="_blank"
+                rel="noreferrer"
+              >
                 NASA Scientific Visualization Studio ID #5196 (DYAMOND Global Carbon Dioxide)
               </a>{' '}
               via{' '}
