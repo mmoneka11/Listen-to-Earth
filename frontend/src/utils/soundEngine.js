@@ -54,7 +54,7 @@ class SoundEngine {
     this.initialized = true;
   }
 
-  playFrame(frame, masterVolume = 70, _speed = 1.0) {
+  playFrame(frame, masterVolume = 70) {
     if (!this.initialized || !frame) return;
 
     // If Sobia attached her own Tone.js handler, delegate to it
@@ -111,78 +111,10 @@ class SoundEngine {
     }
   }
 
-  getNoteForFrame(frame) {
-    if (!frame) return { note: 'C4', freq: 261.63 };
-    if (frame.audio?.note) {
-      const n = `${frame.audio.note}${frame.audio.octave || 4}`;
-      try {
-        return { note: n, freq: Tone.Frequency(n).toFrequency() };
-      } catch {
-        return { note: n, freq: 261.63 };
-      }
-    }
-    const hue = frame.hue ?? 200;
-    const brightness = frame.brightness ?? 0.5;
-    const pitch = hueToPentatonicNote(hue, brightness);
-    try {
-      return {
-        note: pitch,
-        freq: Tone.Frequency(pitch).toFrequency(),
-      };
-    } catch {
-      return { note: pitch, freq: 261.63 };
-    }
-  }
-
   stopAll() {
     if (!this.initialized) return;
     this.synth?.releaseAll();
     this.padSynth?.releaseAll();
-  }
-
-  // Interactive Science Guide & HUD Audition helpers (powered by Tone.js)
-  async testScale(note = 'C4') {
-    await this.init();
-    this.synth.triggerAttackRelease(note, '4n');
-  }
-
-  async testGain(gainNorm = 0.7) {
-    await this.init();
-    this.synth.triggerAttackRelease('G4', '4n', undefined, Math.max(0.05, Math.min(1, gainNorm)));
-  }
-
-  async testPan(panVal = -0.5) {
-    await this.init();
-    this.panner.pan.rampTo(panVal, 0.05);
-    this.synth.triggerAttackRelease('E4', '4n');
-  }
-
-  async testPulse() {
-    await this.init();
-    this.synth.triggerAttackRelease('C5', '8n');
-  }
-
-  async testAnomaly() {
-    await this.init();
-    this.accentSynth.triggerAttackRelease('C2', '8n');
-  }
-
-  async testCalibration() {
-    await this.init();
-    ['C3', 'E3', 'G3', 'C4', 'E4'].forEach((note, idx) => {
-      setTimeout(() => {
-        this.synth.triggerAttackRelease(note, '8n');
-      }, idx * 150);
-    });
-  }
-
-  async auditionDataset(_datasetId = 'co2') {
-    await this.init();
-    this.playFrame({ hue: 125, brightness: 0.6, hot: 0.4, panX: 0.5, delta: 0.2 });
-  }
-
-  setScaleForDataset(_datasetId = 'co2') {
-    // Dynamic scale selection hook
   }
 }
 
