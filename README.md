@@ -8,7 +8,7 @@
 > **Listen to Earth** turns **NASA Earth Information Center (EIC)** visualizations into sound,
 > in real time, so sighted, blind, and low-vision users can *hear* our changing planet.
 
-**Live app:** https://mmoneka11.github.io/Listen-to-Earth/ · **Demo video:** `<ADD DEMO LINK>` · **Repo:** https://github.com/mmoneka11/Listen-to-Earth
+**Live app:** https://mmoneka11.github.io/Listen-to-Earth/ · **Demo video:** https://youtu.be/yaHms5RT0PA · **Repo:** https://github.com/mmoneka11/Listen-to-Earth
 
 ---
 
