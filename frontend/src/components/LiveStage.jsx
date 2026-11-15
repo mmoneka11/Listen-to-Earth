@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import VisualizerCanvas from './VisualizerCanvas';
 import { NASA_CATALOG } from '../utils/nasaDatasets';
+import { asset } from '../utils/asset';
 import { soundEngine } from '../utils/soundEngine';
 
 function formatTime(seconds = 0) {
@@ -143,7 +144,7 @@ export default function LiveStage({
       delta: 0,
       measurementText: '418.0 ppm CO2',
       caption: 'Calibrating planetary telemetry stream...',
-      imageUrl: '/frames/co2/co2_0000.jpg',
+      imageUrl: asset('frames/co2/co2_0000.jpg'),
     }),
     []
   );
@@ -261,7 +262,7 @@ export default function LiveStage({
               <Compass size={14} className="text-primary" />
               <span className="deck-card-title">Planetary Stream Switcher</span>
             </div>
-            <span className="deck-chip-mono">6 DATASETS</span>
+            <span className="deck-chip-mono">1 DATASET</span>
           </div>
 
           <div className="deck-dataset-switcher-list">
@@ -378,7 +379,7 @@ export default function LiveStage({
             </div>
             <div className="tuning-row">
               <span className="tuning-key">Scale:</span>
-              <span className="tuning-val">{activeDataset.scale || 'Pentatonic E-Minor'}</span>
+              <span className="tuning-val">{activeDataset.scale || 'C-Major Pentatonic'}</span>
             </div>
             <div className="tuning-row">
               <span className="tuning-key">Frequency Range:</span>
